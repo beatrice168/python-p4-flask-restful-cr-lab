@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
 from flask_restful import Api, Resource
@@ -17,11 +16,37 @@ db.init_app(app)
 api = Api(app)
 
 class Plants(Resource):
-    pass
-
+    def get(self):
+        response_dict=[n.to_dict()for n in Plant.query.all()]
+        response=make_response(
+            jsonify(response_dict),
+            200,
+        )
+        return response
+    def post(self):
+        new_record=Plant(
+            name = "Live Oak",
+            image= "https://www.nwf.org/-/media/NEW-WEBSITE/Shared-Folder/Wildlife/Plants-and-Fungi/plant_southern-live-oak_600x300.ashx",
+            price= 250.00,
+        )
+        db.session.add(new_record)
+        db.session.commit()
+        response_dict=new_record.to_dict()
+        response=make_response(
+            jsonify(response_dict),
+            201,
+        )
+        return response
+api.add_resource(Plants,'/plants')
 class PlantByID(Resource):
-    pass
-        
+    def get(self,id):
+        response_dict=Plant.query.filter_by(id=id).first().to_dict()
+        response=make_response(
+            jsonify(response_dict),
+            200
+        )
+        return response
+api.add_resource(PlantByID,'/plants/<int:id>')
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
